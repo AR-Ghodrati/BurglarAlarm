@@ -25,6 +25,7 @@ ESP8266WebServer server(80);    // Create a webserver object that listens for HT
 
 String getContentType(String filename); // convert the file extension to the MIME type
 
+
 // defines variables for HY-SRF05
 long duration;
 int distance;
