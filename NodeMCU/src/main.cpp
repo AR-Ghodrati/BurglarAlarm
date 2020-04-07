@@ -3,6 +3,7 @@
 #include <FS.h>   // Include the SPIFFS library
 #include <ESP8266mDNS.h>
 #include <ESP8266WebServer.h>
+#include <esp8266httpclient.h>
 #include "ArduinoJson.h"
 #include "Config.h"
 
@@ -16,12 +17,15 @@
 #define mdnsName  "burglaralarm"
 
 const char* filename = "/config.json";
+const String ServerURL = "http://localhost:2000";
+
 const unsigned int BAUD_RATE=9600;
+String device_id = "";
 
 static bool EnableAlarm = false;
-static bool sensorEnabled = false;
 
 ESP8266WebServer server(80);       // Create a webserver object that listens for HTTP request on port 80
+HTTPClient http;
 
 String formatBytes(size_t);
 String getContentType(String); // convert the file extension to the MIME type
@@ -41,6 +45,11 @@ void ReadDataFromSensor();
 void saveConfig(const char*);
 String getConfig();
 String getValue(String , char , int );
+
+// http requests
+void registerUser(const char*);
+void setActiveAlarm(const char*);
+bool isActiveAlarm(const char*);
 
 
 void setup() {
@@ -71,7 +80,7 @@ void setup() {
   String config = getConfig();
   if(!config.isEmpty()){
     max_distance = getValue(config,' ',3).toInt();
-    sensorEnabled = true;
+    device_id = getValue(config,' ',0);
     connectToWifi(getValue(config,' ',1).c_str(),getValue(config,' ',2).c_str());
   } 
   else Serial.println("Cant find Config");
@@ -124,11 +133,61 @@ void connectToWifi(const char* ssid,const char* pass){
 
 
 void loop() {
-   if(sensorEnabled) ReadDataFromSensor();
+   if(device_id != nullptr && !device_id.isEmpty()){
+       delay(100);
+       EnableAlarm = isActiveAlarm(device_id.c_str());
+       if(EnableAlarm) ReadDataFromSensor();
+   }
+   
    server.handleClient();                      // run the server
 }
 
 
+void registerUser(const char* device_id){
+    http.begin(ServerURL + "/board/register");
+
+    String json_string;
+    StaticJsonDocument<50> send_doc;
+    send_doc["device_id"] = device_id;
+    serializeJsonPretty(send_doc, json_string);
+
+    http.POST(json_string);
+    http.end();
+}
+
+bool isActiveAlarm(const char* device_id){
+
+    http.begin(ServerURL + "/board/getAlarmStatus?did=" + String(device_id));
+
+    int httpCode = http.GET();                                                                  //Send the request
+ 
+    if (httpCode == 200) { //Check the returning code
+         String payload = http.getString();           //Get the request response payload
+         Serial.println(payload);                     //Print the response payload
+
+         StaticJsonDocument<100> recv_doc;
+         deserializeJson(recv_doc,payload);
+         http.end();
+
+         return recv_doc["status"].as<bool>();
+      }
+
+    http.end();
+    return false;
+}
+
+void setActiveAlarm(const char* device_id){
+    http.begin(ServerURL + "/board/setAlarmActive");
+
+    String json_string;
+    StaticJsonDocument<50> send_doc;
+    send_doc["device_id"] = device_id;
+    serializeJsonPretty(send_doc, json_string);
+
+    int code = http.POST(json_string);
+    if (code == 200) EnableAlarm = false;
+    http.end();
+}
 
 String formatBytes(size_t bytes) { // convert sizes in bytes to KB and MB
   if (bytes < 1024) {
@@ -216,6 +275,7 @@ void ReadDataFromSensor(){
          if (distance <= max_distance && distance >= 0) {
             // object detected
             digitalWrite(ledPin, HIGH);
+            setActiveAlarm(device_id.c_str());
          } else {
            //no object
            digitalWrite(ledPin, LOW);
@@ -226,7 +286,6 @@ void ReadDataFromSensor(){
     }
     delay(250);
 }
-
 
 
 void setServerListeners(){
@@ -261,11 +320,13 @@ void setServerListeners(){
 
         connectToWifi(ssid,pass);
         max_distance = distance;
-        sensorEnabled = true;
+        device_id = String(did);
 
         saveConfig(config);
     });
 }
+
+
 char* unconstchar(const char* s) {
     int i;
     char* res;
