@@ -2,10 +2,10 @@ MAINTAINER Alireza Ghodrati (Firoozehcorp)
 
 RUN apk add --no-cache tzdata
 
-WORKDIR burglarAlaram
-COPY . .
+WORKDIR /burglarAlaram
+COPY . /burglarAlaram
 
-CMD ["./burglarAlaram"]
+CMD ["./ServerApp"]
 
 
 
