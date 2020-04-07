@@ -11,16 +11,7 @@
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:menu="@menu/main_menu">
-
-        <ImageView
-            android:id="@+id/icon"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            app:srcCompat="@drawable/icon" />
-
-
-    </androidx.appcompat.widget.Toolbar>
+        app:menu="@menu/main_menu" />
 
     <FrameLayout
         android:layout_width="match_parent"
