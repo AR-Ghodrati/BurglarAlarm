@@ -21,7 +21,7 @@
 #define mdnsName  "burglaralarm"
 
 const char* filename = "/config.json"; 
-const String ServerURL = "http://194.5.207.236:2000";
+const String ServerURL = "http://192.168.1.102:2000";
 
 const unsigned int BAUD_RATE=9600;
 String device_id = "";
@@ -178,7 +178,7 @@ bool isActiveAlarm(const char* device_id){
     if (httpCode == 200) { //Check the returning code
          ledLoading();
          String payload = http.getString();           //Get the request response payload
-         Serial.println(payload);                     //Print the response payload
+         //Serial.println(payload);                     //Print the response payload
 
          StaticJsonDocument<100> recv_doc;
          deserializeJson(recv_doc,payload);
@@ -207,7 +207,6 @@ void setActiveSensor(const char* device_id){
     serializeJsonPretty(send_doc, json_string);
 
     int code = http.POST(json_string);
-    http.writeToStream(&Serial);
     if (code == 200) EnableAlarm = false;
     http.end();
 }
@@ -308,7 +307,6 @@ void ReadDataFromSensor(){
         Serial.print(distance);
         Serial.println(" cm");
     }
-    delay(250);
 }
 
 
