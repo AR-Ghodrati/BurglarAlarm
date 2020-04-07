@@ -13,6 +13,8 @@ import ir.firoozehcorp.burglaralarm.services.AlarmService
 import ir.firoozehcorp.burglaralarm.utils.ApiRequestUtil
 import ir.firoozehcorp.burglaralarm.utils.StorageUtil
 import kotlinx.android.synthetic.main.main_ac_layout.*
+import java.util.*
+import kotlin.concurrent.timerTask
 
 
 class MainActivity : AppCompatActivity() {
@@ -78,6 +80,15 @@ class MainActivity : AppCompatActivity() {
                     })
 
         }
+
+        Timer().scheduleAtFixedRate(timerTask {
+            StorageUtil.setAlarmStatus(AlarmService.isAlarmNeedToActive, this@MainActivity)
+            if (AlarmService.isAlarmNeedToActive)
+                swith.background = resources.getDrawable(R.drawable.round_button_disable)
+            else
+                swith.background = resources.getDrawable(R.drawable.round_button_enable)
+
+        }, 0, 100)
     }
 
 
