@@ -13,10 +13,7 @@ import ir.firoozehcorp.burglaralarm.models.server.AlarmStatus
 import ir.firoozehcorp.burglaralarm.services.AlarmService
 import ir.firoozehcorp.burglaralarm.utils.ApiRequestUtil
 import ir.firoozehcorp.burglaralarm.utils.StorageUtil
-import kotlinx.android.synthetic.main.intro_ac_layout.view.*
 import kotlinx.android.synthetic.main.main_ac_layout.*
-import java.util.*
-import kotlin.concurrent.timerTask
 
 
 class MainActivity : AppCompatActivity() {

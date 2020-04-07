@@ -32,7 +32,7 @@ class AlarmService : IntentService(AlarmService::javaClass.name) {
         startId: Int
     ): Int { // Let it continue running until it is stopped.
         if (!isStarted) {
-            Toast.makeText(this, "Alarm Service Started", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "Alarm Service Started", Toast.LENGTH_SHORT).show()
             NotificationUtil.createNotification(this, false)
             startCheckerTimer()
         }
@@ -44,7 +44,7 @@ class AlarmService : IntentService(AlarmService::javaClass.name) {
         isStarted = false
         stopCheckerTimer()
         NotificationUtil.disableNotification(this)
-        Toast.makeText(this, "Alarm Service Destroyed", Toast.LENGTH_LONG).show()
+        Toast.makeText(this, "Alarm Service Stopped", Toast.LENGTH_SHORT).show()
     }
 
 
@@ -53,11 +53,14 @@ class AlarmService : IntentService(AlarmService::javaClass.name) {
     }
 
     private fun startCheckerTimer() {
+        stopCheckerTimer()
+
         timer = Timer()
         timer?.scheduleAtFixedRate(
             timerTask {
                 ApiRequestUtil.getSensorStatus(this@AlarmService, object : ServerApiListener {
                     override fun onResponse(res: ApiResponse) {
+                        Log.e(this@AlarmService.javaClass.name, res.toString())
                         isAlarmNeedToActive = res.status
                         if (isAlarmNeedToActive) NotificationUtil.createNotification(
                             this@AlarmService,

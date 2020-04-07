@@ -35,7 +35,6 @@ func setAlarmStatus(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data, err := ioutil.ReadAll(r.Body)
-	_logger.Info("setAlarmStatus, with data : " + string(data))
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		_, _ = w.Write(createErrorResponse("internal error"))
@@ -142,7 +141,6 @@ func setSensorStatus(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data, err := ioutil.ReadAll(r.Body)
-	_logger.Info("setSensorStatus, with data : " + string(data))
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		_, _ = w.Write(createErrorResponse("internal error"))
@@ -226,6 +224,9 @@ func getUserWithDeviceID(deviceId string) (models.User, bool) {
 }
 
 func setAlarmWithDeviceID(isActive bool, deviceId string) bool {
+	if isActive == false{
+		setSensorWithDeviceID(false,deviceId)
+	}
 	collection := utils.Mongo.Database(os.Getenv("DBNAME")).Collection("users")
 	_, err := collection.UpdateOne(context.TODO(), bson.M{"device_id": deviceId}, bson.D{{"$set",
 		bson.D{
