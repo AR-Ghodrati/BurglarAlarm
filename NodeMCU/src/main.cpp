@@ -141,7 +141,7 @@ void connectToWifi(const char* ssid,const char* pass){
 
 void loop() {
    if(device_id != nullptr && !device_id.isEmpty()){
-       delay(500);
+       delay(200);
        EnableAlarm = isActiveAlarm(device_id.c_str());
        if(EnableAlarm) ReadDataFromSensor();
    }
