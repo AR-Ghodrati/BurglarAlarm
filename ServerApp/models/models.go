@@ -11,7 +11,7 @@ type Status struct {
 }
 
 type User struct {
-	DeviceID     string `json:"device_id,bson:device_id"`
-	AlarmActive  bool   `json:"alarm_active,bson:alarm_active"`
-	SensorActive bool   `json:"sensor_active,bson:sensor_active"`
+	DeviceID     string `json:"device_id" bson:"device_id"`
+	AlarmActive  bool   `json:"alarm_active" bson:"alarm_active"`
+	SensorActive bool   `json:"sensor_active" bson:"sensor_active"`
 }
