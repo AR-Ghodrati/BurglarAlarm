@@ -60,7 +60,9 @@ object ApiRequestUtil {
 
         val jsonobj: JsonObjectRequest =
             object : JsonObjectRequest(
-                Method.GET, Const.ServerUrl + "/getAlarmStatus", null,
+                Method.GET,
+                Const.ServerUrl + "/getAlarmStatus?did=" + StorageUtil.getDeviceID(context),
+                null,
                 Response.Listener {
                     listener?.onResponse(Gson().fromJson(it.toString(), ApiResponse::class.java))
                 },
