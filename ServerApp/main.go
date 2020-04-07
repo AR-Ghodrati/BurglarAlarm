@@ -1,6 +1,7 @@
 package main
 
 import (
+	"BurglarAlarm/ServerApp/core"
 	"BurglarAlarm/ServerApp/utils"
 	"fmt"
 	"github.com/apsdehal/go-logger"
@@ -25,5 +26,5 @@ func main() {
 	Logger.Notice("-------Status---------")
 
 	utils.ConnectToMongo(Logger)
-
+	core.HandleRequests(Logger)
 }
