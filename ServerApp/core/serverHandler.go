@@ -19,10 +19,10 @@ func HandleRequests(logger *logger.Logger) {
 
 	// app handlers
 	http.HandleFunc("/app/setAlarmStatus", setAlarmStatus)
-	http.HandleFunc("/app/getAlarmStatus", getAlarmStatus)
+	http.HandleFunc("/app/getSensorStatus", getSensorStatus)
 
 	// board handlers
-	http.HandleFunc("/board/setAlarmActive", setAlarmStatus)
+	http.HandleFunc("/board/setSensorStatus", setSensorStatus)
 	http.HandleFunc("/board/getAlarmStatus", getAlarmStatus)
 	http.HandleFunc("/board/register", registerUser)
 
@@ -30,31 +30,52 @@ func HandleRequests(logger *logger.Logger) {
 }
 
 func setAlarmStatus(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		return
+	}
+
 	data, err := ioutil.ReadAll(r.Body)
+	_logger.Info("setAlarmStatus, with data : " + string(data))
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		_, _ = w.Write([]byte("internal error"))
+		_, _ = w.Write(createErrorResponse("internal error"))
 	} else {
-		var alarmStatus *models.AlarmStatus
+		var alarmStatus *models.Status
 		_ = json.Unmarshal(data, &alarmStatus)
 
-		if ok := setUserWithDeviceID(alarmStatus.Status, alarmStatus.DeviceID); ok {
-			w.WriteHeader(http.StatusOK)
-			_, _ = w.Write([]byte("saved"))
+		if ok := setAlarmWithDeviceID(alarmStatus.Status, alarmStatus.DeviceID); ok {
+			response := models.Response{
+				Status:  true,
+				Message: "saved",
+			}
+
+			data, err := json.Marshal(response)
+			if err == nil {
+				w.WriteHeader(http.StatusOK)
+				_, _ = w.Write(data)
+			} else {
+				w.WriteHeader(http.StatusInternalServerError)
+				_, _ = w.Write(createErrorResponse("internal error"))
+			}
 		} else {
 			w.WriteHeader(http.StatusNotFound)
-			_, _ = w.Write([]byte("not found"))
+			_, _ = w.Write(createErrorResponse("not found"))
 		}
 	}
 }
 
 func getAlarmStatus(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		return
+	}
 	deviceId, ok := r.URL.Query()["did"]
+
 	if ok {
 		if len(deviceId) > 0 {
-			if isAlarmActive, ok := getUserWithDeviceID(deviceId[0]); ok {
+			_logger.Info("getAlarmStatus, with did : " + deviceId[0])
+			if user, ok := getUserWithDeviceID(deviceId[0]); ok {
 				response := models.Response{
-					Status:  isAlarmActive,
+					Status:  user.AlarmActive,
 					Message: "ok",
 				}
 				data, err := json.Marshal(response)
@@ -63,48 +84,148 @@ func getAlarmStatus(w http.ResponseWriter, r *http.Request) {
 					_, _ = w.Write(data)
 				} else {
 					w.WriteHeader(http.StatusInternalServerError)
-					_, _ = w.Write([]byte("internal error"))
+					_, _ = w.Write(createErrorResponse("internal error"))
 				}
+			} else {
+				w.WriteHeader(http.StatusNotFound)
+				_, _ = w.Write(createErrorResponse("not found"))
 			}
 		} else {
 			w.WriteHeader(http.StatusNotFound)
-			_, _ = w.Write([]byte("not found"))
+			_, _ = w.Write(createErrorResponse("not found"))
 		}
 	} else {
 		w.WriteHeader(http.StatusNotFound)
-		_, _ = w.Write([]byte("not found"))
+		_, _ = w.Write(createErrorResponse("not found"))
+	}
+}
+
+func getSensorStatus(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		return
+	}
+	deviceId, ok := r.URL.Query()["did"]
+
+	if ok {
+		if len(deviceId) > 0 {
+			_logger.Info("getSensorStatus, with did : " + deviceId[0])
+			if user, ok := getUserWithDeviceID(deviceId[0]); ok {
+				response := models.Response{
+					Status:  user.SensorActive,
+					Message: "ok",
+				}
+				data, err := json.Marshal(response)
+				if err == nil {
+					w.WriteHeader(http.StatusOK)
+					_, _ = w.Write(data)
+				} else {
+					w.WriteHeader(http.StatusInternalServerError)
+					_, _ = w.Write(createErrorResponse("internal error"))
+				}
+			} else {
+				w.WriteHeader(http.StatusNotFound)
+				_, _ = w.Write(createErrorResponse("not found"))
+			}
+		} else {
+			w.WriteHeader(http.StatusNotFound)
+			_, _ = w.Write(createErrorResponse("not found"))
+		}
+	} else {
+		w.WriteHeader(http.StatusNotFound)
+		_, _ = w.Write(createErrorResponse("not found"))
+	}
+}
+
+func setSensorStatus(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		return
+	}
+
+	data, err := ioutil.ReadAll(r.Body)
+	_logger.Info("setSensorStatus, with data : " + string(data))
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = w.Write(createErrorResponse("internal error"))
+	} else {
+		var alarmStatus *models.Status
+		_ = json.Unmarshal(data, &alarmStatus)
+
+		if ok := setSensorWithDeviceID(alarmStatus.Status, alarmStatus.DeviceID); ok {
+			response := models.Response{
+				Status:  true,
+				Message: "saved",
+			}
+
+			data, err := json.Marshal(response)
+			if err == nil {
+				w.WriteHeader(http.StatusOK)
+				_, _ = w.Write(data)
+			} else {
+				w.WriteHeader(http.StatusInternalServerError)
+				_, _ = w.Write(createErrorResponse("internal error"))
+			}
+		} else {
+			w.WriteHeader(http.StatusNotFound)
+			_, _ = w.Write(createErrorResponse("not found"))
+		}
 	}
 }
 
 func registerUser(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		return
+	}
+
 	data, err := ioutil.ReadAll(r.Body)
+	_logger.Info("registerUser, with data :  " + string(data))
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		_, _ = w.Write([]byte("internal error"))
+		_, _ = w.Write(createErrorResponse("internal error"))
 	} else {
 		deviceId := string(data)
 		if addUserWithDeviceID(deviceId) {
-			w.WriteHeader(http.StatusOK)
-			_, _ = w.Write([]byte("register successfully"))
+			response := models.Response{
+				Status:  true,
+				Message: "register successfully",
+			}
+
+			data, err := json.Marshal(response)
+			if err == nil {
+				w.WriteHeader(http.StatusOK)
+				_, _ = w.Write(data)
+			} else {
+				w.WriteHeader(http.StatusInternalServerError)
+				_, _ = w.Write(createErrorResponse("internal error"))
+			}
 		} else {
 			w.WriteHeader(http.StatusInternalServerError)
-			_, _ = w.Write([]byte("internal error"))
+			_, _ = w.Write(createErrorResponse("internal error"))
 		}
 	}
 }
 
-func getUserWithDeviceID(deviceId string) (bool, bool) {
+func createErrorResponse(err string) []byte {
+	response := models.Response{
+		Status:  false,
+		Message: err,
+	}
+	data, _ := json.Marshal(response)
+	return data
+}
+
+func getUserWithDeviceID(deviceId string) (models.User, bool) {
 	collection := utils.Mongo.Database(os.Getenv("DBNAME")).Collection("users")
-	var user *models.User
+	var user models.User
 	err := collection.FindOne(context.TODO(), bson.M{"device_id": deviceId}).Decode(&user)
 	if err != nil {
 		_logger.Critical("getUserWithDeviceID err :" + err.Error())
-		return false, false
+		return user, false
 	} else {
-		return user.AlarmActive, true
+		return user, true
 	}
 }
-func setUserWithDeviceID(isActive bool, deviceId string) bool {
+
+func setAlarmWithDeviceID(isActive bool, deviceId string) bool {
 	collection := utils.Mongo.Database(os.Getenv("DBNAME")).Collection("users")
 	_, err := collection.UpdateOne(context.TODO(), bson.M{"device_id": deviceId}, bson.D{{"$set",
 		bson.D{
@@ -117,6 +238,20 @@ func setUserWithDeviceID(isActive bool, deviceId string) bool {
 		return true
 	}
 }
+func setSensorWithDeviceID(isActive bool, deviceId string) bool {
+	collection := utils.Mongo.Database(os.Getenv("DBNAME")).Collection("users")
+	_, err := collection.UpdateOne(context.TODO(), bson.M{"device_id": deviceId}, bson.D{{"$set",
+		bson.D{
+			{"sensor_active", isActive},
+		}}})
+	if err != nil {
+		_logger.Critical("setUserWithDeviceID err :" + err.Error())
+		return false
+	} else {
+		return true
+	}
+}
+
 func addUserWithDeviceID(deviceId string) bool {
 	if _, ok := getUserWithDeviceID(deviceId); !ok {
 		collection := utils.Mongo.Database(os.Getenv("DBNAME")).Collection("users")

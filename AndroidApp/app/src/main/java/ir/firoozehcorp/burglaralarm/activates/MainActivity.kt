@@ -13,6 +13,7 @@ import ir.firoozehcorp.burglaralarm.models.server.AlarmStatus
 import ir.firoozehcorp.burglaralarm.services.AlarmService
 import ir.firoozehcorp.burglaralarm.utils.ApiRequestUtil
 import ir.firoozehcorp.burglaralarm.utils.StorageUtil
+import kotlinx.android.synthetic.main.intro_ac_layout.view.*
 import kotlinx.android.synthetic.main.main_ac_layout.*
 import java.util.*
 import kotlin.concurrent.timerTask
@@ -28,6 +29,7 @@ class MainActivity : AppCompatActivity() {
 
         if (StorageUtil.isAlarmEnable(this)) {
             swith.background = resources.getDrawable(R.drawable.round_button_disable)
+            swith.text = "Disable Alarm"
             startService(Intent(this@MainActivity, AlarmService::class.java))
         }
 
@@ -40,6 +42,8 @@ class MainActivity : AppCompatActivity() {
                         override fun onResponse(res: ApiResponse) {
                             swith.isClickable = true
                             swith.background = resources.getDrawable(R.drawable.round_button_enable)
+                            swith.text = "Enable Alarm"
+
                             StorageUtil.setAlarmStatus(false, this@MainActivity)
                             // stop alarm service
                             stopService(Intent(this@MainActivity, AlarmService::class.java))
@@ -55,7 +59,8 @@ class MainActivity : AppCompatActivity() {
                         }
 
                     })
-            } else
+            }
+            else
                 ApiRequestUtil.sendAlarmStatus(this
                     , AlarmStatus(StorageUtil.getDeviceID(this), true)
                     , object : ServerApiListener {
@@ -64,6 +69,8 @@ class MainActivity : AppCompatActivity() {
                             swith.background =
                                 resources.getDrawable(R.drawable.round_button_disable)
                             StorageUtil.setAlarmStatus(true, this@MainActivity)
+                            swith.text = "Disable Alarm"
+
 
                             // start alarm service
                             startService(Intent(this@MainActivity, AlarmService::class.java))
@@ -81,15 +88,6 @@ class MainActivity : AppCompatActivity() {
                     })
 
         }
-
-        Timer().scheduleAtFixedRate(timerTask {
-            StorageUtil.setAlarmStatus(AlarmService.isAlarmNeedToActive, this@MainActivity)
-            if (AlarmService.isAlarmNeedToActive)
-                swith.background = resources.getDrawable(R.drawable.round_button_disable)
-            else
-                swith.background = resources.getDrawable(R.drawable.round_button_enable)
-
-        }, 0, 100)
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {

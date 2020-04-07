@@ -55,13 +55,13 @@ object ApiRequestUtil {
     }
 
 
-    fun getAlarmStatus(context: Context, listener: ServerApiListener?) {
+    fun getSensorStatus(context: Context, listener: ServerApiListener?) {
         val requestQueue = Volley.newRequestQueue(context)
 
         val jsonobj: JsonObjectRequest =
             object : JsonObjectRequest(
                 Method.GET,
-                Const.ServerUrl + "/getAlarmStatus?did=" + StorageUtil.getDeviceID(context),
+                Const.ServerUrl + "/getSensorStatus?did=" + StorageUtil.getDeviceID(context),
                 null,
                 Response.Listener {
                     listener?.onResponse(Gson().fromJson(it.toString(), ApiResponse::class.java))

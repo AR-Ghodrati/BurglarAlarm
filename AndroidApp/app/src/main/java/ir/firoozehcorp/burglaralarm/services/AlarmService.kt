@@ -56,7 +56,7 @@ class AlarmService : IntentService(AlarmService::javaClass.name) {
         timer = Timer()
         timer?.scheduleAtFixedRate(
             timerTask {
-                ApiRequestUtil.getAlarmStatus(this@AlarmService, object : ServerApiListener {
+                ApiRequestUtil.getSensorStatus(this@AlarmService, object : ServerApiListener {
                     override fun onResponse(res: ApiResponse) {
                         isAlarmNeedToActive = res.status
                         if (isAlarmNeedToActive) NotificationUtil.createNotification(
@@ -71,7 +71,7 @@ class AlarmService : IntentService(AlarmService::javaClass.name) {
                     }
                 })
             }
-            , 0, 100)
+            , 0, 3000)
     }
 
     private fun stopCheckerTimer() {
