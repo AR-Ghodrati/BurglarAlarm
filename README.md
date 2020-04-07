@@ -4,17 +4,17 @@
 
 
 
-##                                Burglar Alarm IOT Project 
+#                                Burglar Alarm IOT Project 
 
 
 
 #### This Project Contains Three Projects
 
-1- ESP8266 (NodeMCU) Project
+   1- ESP8266 (NodeMCU) Project
 
-2- Android App Written with Kotlin
+   2- Android App Written with Kotlin
 
-3- Server App Written with Golang
+   3- Server App Written with Golang
 
 
 
