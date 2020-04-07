@@ -1,21 +1,28 @@
 package ir.firoozehcorp.burglaralarm.activates
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import ir.firoozehcorp.burglaralarm.R
 import ir.firoozehcorp.burglaralarm.listeners.BoardApiListener
-import ir.firoozehcorp.burglaralarm.models.BoardConfig
-import ir.firoozehcorp.burglaralarm.models.BoardResponse
+import ir.firoozehcorp.burglaralarm.models.ApiResponse
+import ir.firoozehcorp.burglaralarm.models.board.BoardConfig
 import ir.firoozehcorp.burglaralarm.utils.ApiRequestUtil
+import ir.firoozehcorp.burglaralarm.utils.StorageUtil
 import kotlinx.android.synthetic.main.activity_setting.*
 
 class SettingActivity : AppCompatActivity() {
 
+    var canBack = true
+    var fromIntro = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_setting)
+
+        fromIntro = intent.getBooleanExtra("fromIntro", false)
 
         submit.setOnClickListener {
             try {
@@ -25,26 +32,42 @@ class SettingActivity : AppCompatActivity() {
 
                 if (_ssid.isNotEmpty() && pass.isNotEmpty() && _distance < 120) {
                     submit.visibility = View.GONE
+                    loading.visibility = View.VISIBLE
+
+                    canBack = false
                     ApiRequestUtil.sendBoardConfig(
                         this,
-                        BoardConfig(_ssid, pass, _distance),
+                        BoardConfig(
+                            StorageUtil.getDeviceID(this),
+                            _ssid,
+                            pass,
+                            _distance
+                        ),
                         object : BoardApiListener {
-                            override fun onResponse(res: BoardResponse) {
+                            override fun onResponse(res: ApiResponse) {
                                 submit.visibility = View.VISIBLE
+                                loading.visibility = View.GONE
+
                                 Toast.makeText(
                                     this@SettingActivity,
-                                    "Data Saved Successfully With Data : " + res.message,
+                                    "Data Saved Successfully",
                                     Toast.LENGTH_SHORT
                                 ).show()
+
+                                StorageUtil.setSettingsOk(true, this@SettingActivity)
+                                canBack = true
                             }
 
                             override fun onError(errMsg: String) {
                                 submit.visibility = View.VISIBLE
+                                loading.visibility = View.GONE
+
                                 Toast.makeText(
                                     this@SettingActivity,
                                     "Error happened : $errMsg",
                                     Toast.LENGTH_LONG
                                 ).show()
+                                canBack = false
                             }
                         })
                 } else {
@@ -56,6 +79,13 @@ class SettingActivity : AppCompatActivity() {
                 Toast.makeText(this, "Error happened : " + e.message, Toast.LENGTH_LONG).show()
             }
 
+        }
+    }
+
+    override fun onBackPressed() {
+        if (canBack) {
+            if (fromIntro) startActivity(Intent(this, IntroActivity::class.java))
+            super.onBackPressed()
         }
     }
 

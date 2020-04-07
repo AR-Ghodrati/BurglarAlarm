@@ -1,13 +1,93 @@
 package ir.firoozehcorp.burglaralarm.activates
 
+import android.content.Intent
 import android.os.Bundle
+import android.view.MenuItem
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import ir.firoozehcorp.burglaralarm.R
+import ir.firoozehcorp.burglaralarm.listeners.ServerApiListener
+import ir.firoozehcorp.burglaralarm.models.ApiResponse
+import ir.firoozehcorp.burglaralarm.models.server.AlarmStatus
+import ir.firoozehcorp.burglaralarm.services.AlarmService
+import ir.firoozehcorp.burglaralarm.utils.ApiRequestUtil
+import ir.firoozehcorp.burglaralarm.utils.StorageUtil
+import kotlinx.android.synthetic.main.main_ac_layout.*
+
 
 class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.intro_ac_layout)
+
+        setSupportActionBar(toolbar)
+
+        if (StorageUtil.isAlarmEnable(this)) {
+            swith.background = resources.getDrawable(R.drawable.round_button_disable)
+            startService(Intent(this@MainActivity, AlarmService::class.java))
+        }
+
+        swith.setOnClickListener {
+            if (StorageUtil.isAlarmEnable(this)) {
+                swith.isClickable = false
+                ApiRequestUtil.sendAlarmStatus(this
+                    , AlarmStatus(StorageUtil.getDeviceID(this), false)
+                    , object : ServerApiListener {
+                        override fun onResponse(res: ApiResponse) {
+                            swith.isClickable = true
+                            swith.background = resources.getDrawable(R.drawable.round_button_enable)
+                            StorageUtil.setAlarmStatus(false, this@MainActivity)
+                            // stop alarm service
+                            stopService(Intent(this@MainActivity, AlarmService::class.java))
+                        }
+
+                        override fun onError(errMsg: String) {
+                            swith.isClickable = true
+                            Toast.makeText(
+                                this@MainActivity,
+                                "change status Failed! >> $errMsg",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+
+                    })
+            } else
+                ApiRequestUtil.sendAlarmStatus(this
+                    , AlarmStatus(StorageUtil.getDeviceID(this), true)
+                    , object : ServerApiListener {
+                        override fun onResponse(res: ApiResponse) {
+                            swith.isClickable = true
+                            swith.background =
+                                resources.getDrawable(R.drawable.round_button_disable)
+                            StorageUtil.setAlarmStatus(true, this@MainActivity)
+
+                            // start alarm service
+                            startService(Intent(this@MainActivity, AlarmService::class.java))
+                        }
+
+                        override fun onError(errMsg: String) {
+                            swith.isClickable = true
+                            Toast.makeText(
+                                this@MainActivity,
+                                "change status Failed! >> $errMsg",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+
+                    })
+
+        }
+    }
+
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == R.id.settingMenu)
+            startActivity(Intent(this, SettingActivity::class.java)
+                .apply {
+                    putExtra("fromIntro", false)
+                })
+
+        return super.onOptionsItemSelected(item)
     }
 }

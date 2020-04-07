@@ -4,7 +4,7 @@ import com.google.gson.annotations.Expose
 import com.google.gson.annotations.SerializedName
 import java.io.Serializable
 
-class BoardResponse : Serializable {
+class ApiResponse : Serializable {
 
     @SerializedName("status")
     @Expose

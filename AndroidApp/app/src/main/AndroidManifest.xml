@@ -24,6 +24,8 @@
             </intent-filter>
         </activity>
         <activity android:name=".activates.MainActivity" />
+
+        <service android:name=".services.AlarmService" />
     </application>
 
 </manifest>

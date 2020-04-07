@@ -57,7 +57,7 @@
             android:layout_height="wrap_content"
             android:layout_margin="5dp"
             android:layout_weight=".5"
-            android:text="TextView"
+            android:text="loading..."
             android:textColor="#000000"
             android:textSize="15sp" />
 

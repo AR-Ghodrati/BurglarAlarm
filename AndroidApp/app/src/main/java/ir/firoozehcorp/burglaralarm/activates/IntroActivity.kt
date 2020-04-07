@@ -21,11 +21,16 @@ class IntroActivity : AppCompatActivity() {
 
 
         if (StorageUtil.isSetSettingsBefore(this)) {
-            startActivity(Intent(this, MainActivity::class.java))
-            finish()
+            Timer("close", false).schedule(2000) {
+                startActivity(Intent(this@IntroActivity, MainActivity::class.java))
+                finish()
+            }
         } else {
             if (checkConnectionToBoard()) {
-                startActivity(Intent(this, SettingActivity::class.java))
+                startActivity(Intent(this, SettingActivity::class.java)
+                    .apply {
+                        putExtra("fromIntro", true)
+                    })
                 finish()
             } else {
                 progressBar.visibility = View.GONE
@@ -35,8 +40,6 @@ class IntroActivity : AppCompatActivity() {
                 }
             }
         }
-
-
     }
 
     private fun checkConnectionToBoard(): Boolean {
