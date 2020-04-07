@@ -14,4 +14,10 @@ class ApiResponse : Serializable {
     @SerializedName("msg")
     @Expose
     var message: String = ""
+
+    override fun toString(): String {
+        return "ApiResponse(status=$status, message='$message')"
+    }
+
+
 }

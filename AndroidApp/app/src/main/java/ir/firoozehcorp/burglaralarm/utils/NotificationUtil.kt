@@ -42,6 +42,7 @@ object NotificationUtil {
             .setPriority(Notification.PRIORITY_MAX)
             .setChannelId(ANDROID_CHANNEL_ID)
             .setOnlyAlertOnce(true)
+            .setOngoing(true)
             .setVibrate(longArrayOf(1000, 1000, 1000, 1000, 1000))
 
         val noti: Notification
