@@ -56,6 +56,7 @@ void setActiveSensor(const char*);
 bool isActiveAlarm(const char*);
 
 void ledLoading();
+int loopCounter;
 
 void setup() {
   Serial.begin(BAUD_RATE);    // Starts the serial communication for HY-SRF05
@@ -141,9 +142,13 @@ void connectToWifi(const char* ssid,const char* pass){
 
 void loop() {
    if(device_id != nullptr && !device_id.isEmpty()){
-       delay(200);
-       EnableAlarm = isActiveAlarm(device_id.c_str());
+       delay(100);
+       if(loopCounter == 10){
+           EnableAlarm = isActiveAlarm(device_id.c_str());
+           loopCounter = 0;
+       }
        if(EnableAlarm) ReadDataFromSensor();
+       loopCounter++;
    }
    
    server.handleClient();                      // run the server
